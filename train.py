@@ -160,6 +160,17 @@ def model_train(model, num_epochs, criterion, optimizer, dataloaders_training, d
 
 def main():
     args = get_input_args()
+
+    # Device selection that respects user's --gpu flag  
+    device = torch.device("cuda" if args.gpu and torch.cuda.is_available() else "cpu")
+    
+    # Show feedback of device selection with confirmation
+    if args.gpu and torch.cuda.is_available():
+        print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+    elif args.gpu and not torch.cuda.is_available():
+        print("Warning: GPU requested but not available. Using CPU instead.")
+    else:
+        print("Using CPU")
     
     dataLoaders, class_to_idx = load_data(args.data_dir)
     model, criterion, optimizer = model_setup(args.hidden_units, class_to_idx, args.learning_rate, args.arch)

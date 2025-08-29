@@ -92,9 +92,10 @@ def process_image(image_path):
     
     return np_image
 
-def predict(image_path, model, topk=5):
-    # Same function as notebook
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+def predict(image_path, model, topk=5, gpu=False):
+
+    # Device selection respects user's choice (GPU/CPU)
+    device = torch.device("cuda" if gpu and torch.cuda.is_available() else "cpu")
     
     processed_image = process_image(image_path)
     image_tensor = torch.from_numpy(processed_image).float()
@@ -128,6 +129,17 @@ def predict(image_path, model, topk=5):
 
 def main():
     args = get_input_args()
+
+    # Device selection that respects user's --gpu flag
+    device = torch.device("cuda" if args.gpu and torch.cuda.is_available() else "cpu")
+    
+    # Print device info for user confirmation
+    if args.gpu and torch.cuda.is_available():
+        print(f"Using GPU: {torch.cuda.get_device_name(0)}")
+    elif args.gpu and not torch.cuda.is_available():
+        print("Warning: GPU requested but not available. Using CPU instead.")
+    else:
+        print("Using CPU")
     
     model = load_checkpoint(args.checkpoint)
     if model is None:
@@ -145,6 +157,6 @@ def main():
     print(f"Top {args.top_k} predictions:")
     for i, (prob, name) in enumerate(zip(probs, class_names)):
         print(f"{i+1}. {name}: {prob:.4f}")
-
+   
 if __name__ == '__main__':
     main()
